@@ -1,5 +1,6 @@
 import * as Three from "Three";
 import type { PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import gsap from "gsap";
 class ScrollAnimate {
   container: HTMLElement;
   scene: Scene;
@@ -19,6 +20,8 @@ class ScrollAnimate {
     this.init();
 
     this.setObject();
+
+    this.setObjectRotate();
   }
   setObject() {
     // 材质
@@ -60,6 +63,27 @@ class ScrollAnimate {
     directionalLight.position.set(1, 1, 0);
     this.scene.add(directionalLight);
   }
+  setObjectRotate() {
+    let scrollY = window.scrollY;
+    let currentSection = 0;
+
+    window.addEventListener("scroll", () => {
+      scrollY = window.scrollY;
+      const newSection = Math.round(scrollY / this.sizes.height);
+
+      if (newSection != currentSection) {
+        currentSection = newSection;
+
+        gsap.to(this.sectionMeshes[currentSection].rotation, {
+          duration: 1.5,
+          ease: "power2.inOut",
+          x: "+=6",
+          y: "+=3",
+          z: "+=1.5",
+        });
+      }
+    });
+  }
   private init() {
     // 初始化场景
     this.scene = new Three.Scene();
@@ -93,12 +117,19 @@ class ScrollAnimate {
   }
   setAnimate() {
     const clock = new Three.Clock();
+    let previousTime = 0;
     const tick = () => {
       const elapsedTime = clock.getElapsedTime();
+      const deltaTime = elapsedTime - previousTime;
+      previousTime = elapsedTime;
       // 相机随着滚动而移动
       this.camera.position.y =
         (-scrollY / this.sizes.height) * this.objectsDistance;
-
+      // Animate meshes
+      for (const mesh of this.sectionMeshes) {
+        mesh.rotation.x += deltaTime * 0.1;
+        mesh.rotation.y += deltaTime * 0.12;
+      }
       // Render
       this.renderer.render(this.scene, this.camera);
 
