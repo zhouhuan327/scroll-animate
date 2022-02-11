@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.webgl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  outline: none;
+  width: 100%;
+  height: 100%;
+}
+main {
+  position: relative;
+  z-index: 10;
+}
+section {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  color: white;
+  margin: 0 10%;
+  font-size: 26px;
+}
+section:nth-of-type(even) {
+  justify-content: flex-end;
+}
