@@ -6,6 +6,7 @@ class ScrollAnimate {
   scene: Scene;
   renderer: WebGLRenderer;
   camera: PerspectiveCamera;
+  cameraGroup;
   sizes = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -15,12 +16,16 @@ class ScrollAnimate {
   objectsDistance = 4;
   // 物体数组
   sectionMeshes = [];
+  cursor = {
+    x: 0,
+    y: 0,
+  };
   constructor(targetClassName = "canvas.webgl") {
     this.container = document.querySelector(targetClassName);
     this.init();
 
     this.setObject();
-
+    this.setCursor();
     this.setObjectRotate();
   }
   setObject() {
@@ -84,6 +89,12 @@ class ScrollAnimate {
       }
     });
   }
+  setCursor() {
+    window.addEventListener("mousemove", (event) => {
+      this.cursor.x = event.clientX / this.sizes.width - 0.5;
+      this.cursor.y = event.clientY / this.sizes.height - 0.5;
+    });
+  }
   private init() {
     // 初始化场景
     this.scene = new Three.Scene();
@@ -97,15 +108,19 @@ class ScrollAnimate {
     this.setResponsive();
   }
   setCamera() {
-    const camera = new Three.PerspectiveCamera(
+    // 相机组
+    this.cameraGroup = new Three.Group();
+    this.scene.add(this.cameraGroup);
+    // 相机
+    this.camera = new Three.PerspectiveCamera(
       35,
       this.sizes.width / this.sizes.height,
       0.1,
       100
     );
-    camera.position.z = 6;
-    this.scene.add(camera);
-    this.camera = camera;
+    this.camera.position.z = 6;
+
+    this.cameraGroup.add(this.camera);
   }
   setRenderer() {
     const renderer = new Three.WebGLRenderer({
@@ -125,11 +140,22 @@ class ScrollAnimate {
       // 相机随着滚动而移动
       this.camera.position.y =
         (-scrollY / this.sizes.height) * this.objectsDistance;
-      // Animate meshes
+
+      // 鼠标移动相机
+      const parallaxX = this.cursor.x * 0.5;
+      const parallaxY = -this.cursor.y * 0.5;
+
+      this.cameraGroup.position.x +=
+        (parallaxX - this.cameraGroup.position.x) * 5 * deltaTime;
+      this.cameraGroup.position.y +=
+        (parallaxY - this.cameraGroup.position.y) * 5 * deltaTime;
+
+      // 物体缓慢转动
       for (const mesh of this.sectionMeshes) {
         mesh.rotation.x += deltaTime * 0.1;
         mesh.rotation.y += deltaTime * 0.12;
       }
+
       // Render
       this.renderer.render(this.scene, this.camera);
 
