@@ -22,11 +22,17 @@ class ScrollAnimate {
   };
   constructor(targetClassName = "canvas.webgl") {
     this.container = document.querySelector(targetClassName);
+    // 初始化场景,相机,渲染器等等
     this.init();
 
+    // 渲染物体
     this.setObject();
+    // 记录鼠标移动坐标
     this.setCursor();
+    // 物体出现后旋转
     this.setObjectRotate();
+    // 背景粒子效果
+    this.setParticles();
   }
   setObject() {
     // 材质
@@ -88,6 +94,35 @@ class ScrollAnimate {
         });
       }
     });
+  }
+  setParticles() {
+    const particlesCount = 200;
+    const positions = new Float32Array(particlesCount * 3);
+
+    for (let i = 0; i < particlesCount; i++) {
+      positions[i * 3 + 0] = (Math.random() - 0.5) * 10;
+      positions[i * 3 + 1] =
+        this.objectsDistance * 0.5 -
+        Math.random() * this.objectsDistance * this.sectionMeshes.length;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+    }
+
+    const particlesGeometry = new Three.BufferGeometry();
+    particlesGeometry.setAttribute(
+      "position",
+      new Three.BufferAttribute(positions, 3)
+    );
+
+    // Material
+    const particlesMaterial = new Three.PointsMaterial({
+      color: "ffffff",
+      sizeAttenuation: this.textureLoader,
+      size: 0.03,
+    });
+
+    // Points
+    const particles = new Three.Points(particlesGeometry, particlesMaterial);
+    this.scene.add(particles);
   }
   setCursor() {
     window.addEventListener("mousemove", (event) => {
